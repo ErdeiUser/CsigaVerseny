@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Text;
@@ -20,6 +21,7 @@ namespace CsigaVerseny
         
         private ICsigaView View;
         private RaceController controller;
+        private DbgListener dbgListener;
 
         public Form1()
         {
@@ -34,15 +36,26 @@ namespace CsigaVerseny
             }
             else
             {
-                View = new TextView();
+                View = new TextView(tbText);
             }
             controller = new RaceController(View, game);
+            game.Controller=controller;
+            game.StartGame();
+
         }
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            dbgListener = new DbgListener(txtDebug);
+            Debug.Listeners.Add(dbgListener);
+            
             game = new Game();
-            game.StartGame();
+        }
+
+
+        private void rbConsole_CheckedChanged(object sender, EventArgs e)
+        {
+                dbgListener.Enabled = rbConsole.Checked;
         }
     }
 }
