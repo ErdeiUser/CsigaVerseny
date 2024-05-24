@@ -46,10 +46,9 @@ namespace CsigaVerseny
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            game = new Game();
             dbgListener = new DbgListener(txtDebug);
             Debug.Listeners.Add(dbgListener);
-            
-            game = new Game();
         }
 
 

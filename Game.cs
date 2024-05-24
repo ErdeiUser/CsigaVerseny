@@ -18,72 +18,88 @@ namespace CsigaVerseny
         public bool IsPaused { get; set; }
         public bool IsPlayEnd { get; set; }
         public List<IRacerDepot> Depos{ get; set; }
+
+        private IRacerDepot racerDepot;
+
         public List<IRacer> Racers { get; set ; }
         public List<IPlayer> Players { get; set; }
         public IRaceController Controller { get; set; }
 
         IRace CurrentRace;
+        private IRacerDepot snailDepot;
+
         public Game() 
         {
-            Depos = new List<IRacerDepot>();
-            IRacerDepot racer = new RacerDepot();
-            Depos.Add(racer);
-            IRacerDepot snail = new SnailDepot();
-            Depos.Add(snail);
 
-            
+            Depos = new List<IRacerDepot>();
+            racerDepot = new RacerDepot();
+            Depos.Add(racerDepot);
+            snailDepot = new SnailDepot();
+            Depos.Add(snailDepot);
+
+            //Reset();
+
+            Racers = new List<IRacer>();
+            Players = new List<IPlayer>();
+
+            IPlayer player = new Player("player1", 100);
+            Players.Add(player);
 
             foreach (IRacerDepot depot in Depos)
             {
-                foreach (IRacer Racer in depot.LoadAll(null))
+                var filter=new Racer(null,null,0,null);
+                if (depot is SnailDepot)
+                {
+                    filter.Type = 2;
+                }
+
+                foreach (IRacer Racer in depot.LoadAll(filter))
                 {
                     Racers.Add(Racer);
+                }
+            }
+
+            if (Racers.Count == 0)
+            {
+                for (int i = 0; i < 3; i++)
+                {
+                    IRacer racer = racerDepot.Create((i + 1) + " racer", i.ToString(), 1, "white");
+                    racerDepot.Save(racer);
+                    Racers.Add(racer);
+                }
+
+                for (int i = 0; i < 3; i++)
+                {
+                    IRacer racer = snailDepot.Create((i + 1) + " snail", i.ToString(), 1, "slime");
+                    snailDepot.Save(racer); 
+                    Racers.Add(racer);
                 }
             }
 
         }
         public void StartGame()
         {
-            Depos=new List<IRacerDepot>();
-            Racers = new List<IRacer>();
-            Players = new List<IPlayer>();
-            IPlayer player = new Player("player1", 100);
-            Players.Add(player);
-            Controller.view.show("Palyer :"+player.ToString()); 
              IsRunning = true;
             IsPaused = false;
             IsPlayEnd = false;
 
 
-            IRacerDepot racerDepot = new RacerDepot();
-
-            for (int i = 0; i < 3; i++)
-            {
-                IRacer racer = racerDepot.Create((i+1) + " racer", i.ToString(), 1, "white"); 
-                Racers.Add(racer);
-                Controller.view.show("Racer:" + racer.ToString());
-            }
-
-            IRacerDepot snailDepot = new SnailDepot();
-
-            for (int i = 0; i < 3; i++)
-            {
-                IRacer racer = snailDepot.Create((i+1) + " snail", i.ToString(), 1, "slime");
-                Racers.Add(racer);
-                Controller.view.show("Racer:" + racer.ToString());
-            }
             CurrentRace = new Race(Racers, Players, maxRound);
             
             Random rnd = new Random();
+            IPlayer player= Players.First();
+            Controller.view.show("Palyer :" + player.ToString());
+
+            foreach (IRacer racer in CurrentRace.Racers)
+            {
+                racer.backToStart();
+                Controller.view.show("Racer:" + racer.ToString());
+            }
 
             IBet bet1 = new Bet(player, Racers[rnd.Next(Racers.Count())], 10, 2);
             Controller.view.show(string.Format("Player bet:{0}",bet1.ToString()));
             CurrentRace.Bets.Add(bet1);
 
-            foreach (IRacer racer in CurrentRace.Racers)
-            {
-                racer.backToStart();
-            }
 
             Controller.view.show("Game start");
 
@@ -159,6 +175,15 @@ namespace CsigaVerseny
             retval+= "Game status: "+IsRunning;
 
             return retval;
+        }
+
+        internal void Reset()
+        {
+            foreach (IRacerDepot depot in Depos)
+            {
+                depot.DeleteAll();
+                break;
+            }   
         }
     }   
 }
