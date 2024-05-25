@@ -15,46 +15,52 @@ using System.Windows.Forms;
 
 namespace CsigaVerseny
 {
+    /// <summary>
+    /// Main form of the application
+    /// </summary>
     public partial class Form1 : Form
     {
-        private Game game;
-        
-        private ICsigaView View;
-        private RaceController controller;
-        private DbgListener dbgListener;
+
+       /// <summary>
+       /// Game Logic Controller
+       /// </summary>       
+        public IGameController gameController { get; set; }
 
         public Form1()
         {
             InitializeComponent();
         }
 
+        /// <summary>
+        /// Start the game
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void btnStart_Click(object sender, EventArgs e)
         {
-            if(rbConsole.Checked)
+            //create game controller
+            var gameController = new GameController();
+            //different view type
+            if (rbConsole.Checked)
             {
-                View = new ConsoleView();
+                //start game with console view
+                gameController.StartGame(1,txtDebug);
             }
             else
             {
-                View = new TextView(tbText);
+                //start game with text view
+                gameController.StartGame(2, tbText);
             }
-            controller = new RaceController(View, game);
-            game.Controller=controller;
-            game.StartGame();
-
         }
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            game = new Game();
-            dbgListener = new DbgListener(txtDebug);
-            Debug.Listeners.Add(dbgListener);
         }
 
 
         private void rbConsole_CheckedChanged(object sender, EventArgs e)
         {
-                dbgListener.Enabled = rbConsole.Checked;
+             
         }
     }
 }
